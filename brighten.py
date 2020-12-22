@@ -1,4 +1,5 @@
 import math
+import re
 import sys
 
 from PIL import Image, ImageDraw, ImageFont, ImageStat
@@ -15,6 +16,13 @@ def get_average_brightness(image):
 brightnesses = []
 
 for image_path in sys.argv[1:]:
+    match = re.search(r"(?P<date>\d{8})_(?P<time>\d{6})\.(png|jpg)$", image_path)
+    if not match:
+        raise ValueError(f"Image path has incorrect format: {image_path}")
+
+    date = re.sub(r"^(\d{4})(\d{2})(\d{2})$", r"\1-\2-\3", match.group("date"))
+    time = re.sub(r"^(\d{2})(\d{2}).*$", r"\1:\2", match.group("time"))
+
     image = Image.open(image_path)
     overlay = Image.new(image.mode, image.size, (255,255, 255, 0))
     filename = ".".join(image_path.split(".")[:-1])
@@ -48,13 +56,17 @@ for image_path in sys.argv[1:]:
         if brightness_pre != brightness_post:
             draw.line((x, y1_pre, x, y2), fill=(128, 128, 128, 192), width=width)
 
-    # Brightness info as text
     font_size = 32
     font = ImageFont.truetype("DejaVuSans.ttf", font_size)
+
+    # Brightness info as text
     x = image.size[0] - font_size*3
     y = image.size[1] - font_size
     draw.text((x, y), f"{avg_brightness_pre:.0f}", (128, 128, 128, 192), stroke_width=2, stroke_fill=(0, 0, 0, 128), font=font)
     draw.text((x, y-font_size), f"{avg_brightness_post:.0f}", (255, 255, 255, 192), stroke_width=2, stroke_fill=(0, 0, 0, 128), font=font)
+
+    # Datetime as text
+    draw.text((font_size, font_size), f"{date} {time}", (255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0, 128), font=font)
 
     image = Image.alpha_composite(image, overlay)
     image.convert("RGB").save(new_filename)
