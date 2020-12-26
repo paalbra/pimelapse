@@ -1,5 +1,6 @@
 import glob
 import math
+import pathlib
 import re
 import sys
 
@@ -14,22 +15,26 @@ def get_average_brightness(image):
     image = image.copy().convert("L")
     return ImageStat.Stat(image).mean[0]
 
+output_dir_path = pathlib.Path("output")
+
 brightnesses = []
 
-for image_path in glob.glob(sys.argv[1]):
-    match = re.search(r"(?P<date>\d{8})_(?P<time>\d{6})\.(png|jpg)$", image_path)
+for image_path in [pathlib.Path(path) for path in glob.glob(sys.argv[1])]:
+    filename = image_path.name
+    match = re.search(r"(?P<date>\d{8})_(?P<time>\d{6})\.(png|jpg)$", filename)
     if not match:
-        raise ValueError(f"Image path has incorrect format: {image_path}")
+        raise ValueError(f"Filename has incorrect format: {filename}")
 
     date = re.sub(r"^(\d{4})(\d{2})(\d{2})$", r"\1-\2-\3", match.group("date"))
     time = re.sub(r"^(\d{2})(\d{2}).*$", r"\1:\2", match.group("time"))
 
     image = Image.open(image_path)
     overlay = Image.new(image.mode, image.size, (255,255, 255, 0))
-    filename = ".".join(image_path.split(".")[:-1])
-    # extension = image_path.split(".")[-1]
-    extension = "jpg"
-    new_filename = f"{filename}_2.{extension}"
+    filestem = image_path.stem
+    # extension = image_path.suffix
+    extension = ".jpg"
+    new_filename = f"{filestem}{extension}"
+    new_image_path = output_dir_path.joinpath(new_filename)
 
     avg_brightness_pre = get_average_brightness(image)
     if avg_brightness_pre < 50:
@@ -70,5 +75,5 @@ for image_path in glob.glob(sys.argv[1]):
     draw.text((font_size, font_size), f"{date} {time}", (255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0, 128), font=font)
 
     image = Image.alpha_composite(image, overlay)
-    image.convert("RGB").save(new_filename)
-    print(image_path, "=>", new_filename)
+    image.convert("RGB").save(new_image_path)
+    print(image_path, "=>", new_image_path)

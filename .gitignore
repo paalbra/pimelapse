@@ -1,4 +1,5 @@
 venv/
 
 images/
+output/
 *.mp4
