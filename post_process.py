@@ -1,3 +1,4 @@
+import glob
 import math
 import re
 import sys
@@ -15,7 +16,7 @@ def get_average_brightness(image):
 
 brightnesses = []
 
-for image_path in sys.argv[1:]:
+for image_path in glob.glob(sys.argv[1]):
     match = re.search(r"(?P<date>\d{8})_(?P<time>\d{6})\.(png|jpg)$", image_path)
     if not match:
         raise ValueError(f"Image path has incorrect format: {image_path}")
@@ -70,4 +71,4 @@ for image_path in sys.argv[1:]:
 
     image = Image.alpha_composite(image, overlay)
     image.convert("RGB").save(new_filename)
-    print(new_filename)
+    print(image_path, "=>", new_filename)
