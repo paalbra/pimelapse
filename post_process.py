@@ -20,13 +20,19 @@ def get_average_brightness(image):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-
     parser = argparse.ArgumentParser(description="Post process images")
     parser.add_argument("input", help="Glob patter to use for input images")
     parser.add_argument("--output", default="output", help="Output images direcory")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing output files")
+
+    output_group = parser.add_mutually_exclusive_group()
+    output_group.add_argument("--verbose", action="store_const", const=logging.DEBUG, dest="log_level")
+    output_group.add_argument("--quiet", action="store_const", const=logging.WARNING, dest="log_level")
+    parser.set_defaults(log_level=logging.INFO)
+
     args = parser.parse_args()
+
+    logging.basicConfig(level=args.log_level)
 
     output_dir_path = pathlib.Path(args.output)
 
