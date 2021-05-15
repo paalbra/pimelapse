@@ -1,6 +1,7 @@
 import argparse
 import glob
 import math
+import os.path
 import pathlib
 import re
 import sys
@@ -21,6 +22,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Post process images")
     parser.add_argument("input", help="Glob patter to use for input images")
     parser.add_argument("--output", default="output", help="Output images direcory")
+    parser.add_argument("--overwrite", action="store_true", help="Overwrite existing output files")
     args = parser.parse_args()
 
     output_dir_path = pathlib.Path(args.output)
@@ -33,16 +35,21 @@ if __name__ == "__main__":
         if not match:
             raise ValueError(f"Filename has incorrect format: {filename}")
 
-        date = re.sub(r"^(\d{4})(\d{2})(\d{2})$", r"\1-\2-\3", match.group("date"))
-        time = re.sub(r"^(\d{2})(\d{2}).*$", r"\1:\2", match.group("time"))
-
-        image = Image.open(image_path)
-        overlay = Image.new(image.mode, image.size, (255,255, 255, 0))
         filestem = image_path.stem
         # extension = image_path.suffix
         extension = ".jpg"
         new_filename = f"{filestem}{extension}"
         new_image_path = output_dir_path.joinpath(new_filename)
+
+        if os.path.exists(new_image_path) and not args.overwrite:
+            print("Skipping existing:", image_path, "=>", new_image_path)
+            continue
+
+        date = re.sub(r"^(\d{4})(\d{2})(\d{2})$", r"\1-\2-\3", match.group("date"))
+        time = re.sub(r"^(\d{2})(\d{2}).*$", r"\1:\2", match.group("time"))
+
+        image = Image.open(image_path)
+        overlay = Image.new(image.mode, image.size, (255,255, 255, 0))
 
         avg_brightness_pre = get_average_brightness(image)
         if avg_brightness_pre < 50:
