@@ -1,3 +1,4 @@
+import argparse
 import glob
 import math
 import pathlib
@@ -17,11 +18,16 @@ def get_average_brightness(image):
 
 
 if __name__ == "__main__":
-    output_dir_path = pathlib.Path("output")
+    parser = argparse.ArgumentParser(description="Post process images")
+    parser.add_argument("input", help="Glob patter to use for input images")
+    parser.add_argument("--output", default="output", help="Output images direcory")
+    args = parser.parse_args()
+
+    output_dir_path = pathlib.Path(args.output)
 
     brightnesses = []
 
-    for image_path in [pathlib.Path(path) for path in glob.glob(sys.argv[1])]:
+    for image_path in [pathlib.Path(path) for path in glob.glob(args.input)]:
         filename = image_path.name
         match = re.search(r"(?P<date>\d{8})_(?P<time>\d{6})\.(png|jpg)$", filename)
         if not match:
