@@ -1,6 +1,7 @@
 import argparse
 import glob
 import math
+import logging
 import os.path
 import pathlib
 import re
@@ -19,6 +20,8 @@ def get_average_brightness(image):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+
     parser = argparse.ArgumentParser(description="Post process images")
     parser.add_argument("input", help="Glob patter to use for input images")
     parser.add_argument("--output", default="output", help="Output images direcory")
@@ -42,7 +45,7 @@ if __name__ == "__main__":
         new_image_path = output_dir_path.joinpath(new_filename)
 
         if os.path.exists(new_image_path) and not args.overwrite:
-            print("Skipping existing:", image_path, "=>", new_image_path)
+            logging.info("Skipping existing: %s => %s", image_path, new_image_path)
             continue
 
         date = re.sub(r"^(\d{4})(\d{2})(\d{2})$", r"\1-\2-\3", match.group("date"))
@@ -91,4 +94,4 @@ if __name__ == "__main__":
 
         image = Image.alpha_composite(image, overlay)
         image.convert("RGB").save(new_image_path)
-        print(image_path, "=>", new_image_path)
+        logging.info("Output: %s => %s", image_path, new_image_path)
